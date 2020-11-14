@@ -1,6 +1,8 @@
+import os
+import subprocess
+
 class Node:
 		def __init__(self, file_path):
-				import os
 				self.file_path=file_path
 
 		def __add__(self, other):
@@ -13,7 +15,17 @@ class Node:
 				self.end=end
 				return self
 
-		def render(self, width, height, copy=False, dry=False):
+		def render(self, width=None, height=None, copy=False, dry=False):
+				if width == None:
+					output=subprocess.check_output(
+						'ffprobe '
+						'-v error '
+						'-show_entries stream=width,height '
+						'-of csv=p=0 '
+						'~/Downloads/VID_20200801_144631.mp4',
+						shell=True,
+					)
+					width, height = output.decode('utf-8').strip().split(',')
 				render=self._render(width, height, copy)
 				invocation='ffmpeg'
 				if copy:
@@ -29,8 +41,7 @@ class Node:
 				invocation+=' output.mov'
 				if dry: print(invocation)
 				else:
-						import subprocess
-						subprocess.check_call(invocation, shell=True)
+					subprocess.check_call(invocation, shell=True)
 
 		def _render(self, width, height, copy, index=0):
 			if copy:
